@@ -21,23 +21,23 @@ Upload a video, pick a movement type, and get:
 ```
 video file
    │
-   ▼
-PoseEstimator (MediaPipe Pose)  ──►  per-frame 2D pixel landmarks
+   
+PoseEstimator (MediaPipe Pose)       per-frame 2D pixel landmarks
    │                                  + monocular 3D world landmarks (33 joints)
-   ▼
+   
 SportAnalyzer (squat / sprint / golf)
    │   - joint-angle time series (hip, knee, spine, etc.)
    │   - phase/rep segmentation (e.g. squat bottoms, foot strikes, swing top/impact)
    │   - rule-based flags against coaching thresholds
-   ▼
-FormReport  ──►  Streamlit UI (annotated video, charts, 3D viewer, feedback list)
+   
+FormReport      Streamlit UI (annotated video, charts, 3D viewer, feedback list)
 ```
 
-**Why this structure:** `PoseEstimator` is the only module that touches MediaPipe.
+Why this structure: `PoseEstimator` is the only module that touches MediaPipe.
 Everything downstream works with plain `FrameLandmarks`/`VideoLandmarks` objects,
 so swapping in a different pose backend (e.g. MoveNet, or a proper multi-view 3D
 triangulation setup) only requires rewriting one file. Adding a new sport means
-subclassing `SportAnalyzer` and implementing `analyze()` — no changes needed
+subclassing `SportAnalyzer` and implementing `analyze()` - no changes needed
 elsewhere.
 
 ### Per-sport metrics
@@ -48,14 +48,14 @@ elsewhere.
 | **Sprint** | trunk lean, hip flexion (knee drive), foot-strike overstride ratio, cadence | overstride, limited knee drive, excessive lean |
 | **Golf** | spine angle, hip lateral position, swing phases (address/top/impact) | early extension, hip sway |
 | **Football (injury screen)** | knee flexion at landing, knee valgus ratio, trunk flexion, L/R timing & angle symmetry | stiff landing, knee valgus, upright trunk, asymmetric/non-simultaneous landing |
-| **Cricket — bowling** | front knee angle at front-foot-contact, trunk lateral flexion, shoulder-hip separation | limited front-leg bracing, high lateral flexion (lumbar stress-injury marker), mixed-action separation |
-| **Cricket — batting** | head lateral deviation from base, hip sway, trunk lean at completion | head off the ball, excessive weight shift, loss of balance |
+| **Cricket bowling** | front knee angle at front-foot-contact, trunk lateral flexion, shoulder-hip separation | limited front-leg bracing, high lateral flexion (lumbar stress-injury marker), mixed-action separation |
+| **Cricket batting** | head lateral deviation from base, hip sway, trunk lean at completion | head off the ball, excessive weight shift, loss of balance |
 
-Football and cricket bowling film a specific event (a jump-landing/cut, or one delivery) rather than a repeated movement — the analyzer auto-locates that event (e.g. jump apex → landing, or front-foot-contact → release) instead of relying on rep counting.
+Football and cricket bowling film a specific event (a jump-landing/cut, or one delivery) rather than a repeated movement-the analyzer auto-locates that event (e.g. jump apex → landing, or front-foot-contact → release) instead of relying on rep counting.
 
 Rep/phase segmentation uses simple signal-processing on the angle time series
 (e.g. local minima of knee angle = bottom of each squat) rather than a trained
-model — this keeps it fast, dependency-light, and easy to explain, at the cost
+model-this keeps it fast, dependency-light, and easy to explain, at the cost
 of being less robust to noisy or partial-body video than a learned approach.
 
 ## Project structure
@@ -125,7 +125,7 @@ pytest tests/ -v
 
 34 tests covering the geometry utilities (`utils/angles.py`) with hand-checkable
 cases (e.g. a straight line is exactly 180°, a right angle is exactly 90°) and
-the analyzers against synthetically generated pose sequences — a squat cycle
+the analyzers against synthetically generated pose sequences-a squat cycle
 built from real trigonometry (not just arbitrary numbers) so the rep-counting
 and depth-flagging logic is checked against known-correct angles, plus a
 crash-safety sweep of every analyzer against zero-detection video. CI
@@ -136,28 +136,15 @@ crash-safety sweep of every analyzer against zero-detection video. CI
 
 The injury-risk thresholds (knee valgus, stiff landings, trunk lateral
 flexion in bowling) are motivated by specific findings in the sports-
-biomechanics literature — see **[docs/REFERENCES.md](docs/REFERENCES.md)**
-for the citations, what each one actually established, and — just as
-importantly — the gap between what those studies measured (typically 3D
-marker-based motion capture, sometimes with force plates) and what this
-project measures (2D/monocular-3D proxies from a single RGB camera). That
-gap is not fully closed here; see Limitations below.
+biomechanics literature-see **[docs/REFERENCES.md](docs/REFERENCES.md)**
+for citations.
 
-## Limitations & honest caveats
+## Limitations
 
-- **Not validated against ground truth.** This pipeline's output has not
-  been compared to a marker-based motion-capture system or any labeled
-  dataset. Published validation studies of MediaPipe generally report joint-
-  angle errors in the ~5-13° range against marker-based references under
-  favorable single- or two-camera conditions (see docs/REFERENCES.md) — that
-  establishes the *approach* is usable for research, not that this specific
-  pipeline's numbers are accurate. A natural next step is running this
-  project's outputs against a marker-based or multi-camera reference on a
-  small sample to establish actual error bounds.
+
 - **Monocular 3D is an estimate, not a measurement.** MediaPipe's 3D world
   landmarks come from a single RGB camera, so depth (Z) is noisier than X/Y.
-  Relative joint angles are reliable; absolute distances (e.g. "your stride
-  was exactly 1.8m") are not — this project doesn't claim that precision.
+  Relative joint angles are reliable; absolute distances are not.
 - **2D proxies stand in for 3D/kinetic quantities the literature actually
   validated.** E.g. the knee-valgus metrics are frontal-plane pixel-position
   deviations, not the knee-abduction *moment* (a kinetic quantity requiring
@@ -165,12 +152,6 @@ gap is not fully closed here; see Limitations below.
   predictor. The thresholds approximate the same visually-screenable
   pattern a coach would look for, not the validated kinetic predictor
   itself. Full detail per-analyzer in docs/REFERENCES.md.
-- **Thresholds are heuristic defaults, not fit to labeled data.** They're
-  motivated by the literature's *direction and typical magnitude* of effect
-  (e.g. "greater lateral flexion associated with injury" and roughly what
-  "greater" meant in that sample), not fit via regression to a labeled
-  outcome using this project's own measurement method. Tuning them against
-  real, ideally labeled, footage is the logical next step (see Testing).
 - **Single camera angle per movement.** Real biomechanics analysis (especially
   for golf swing plane or true shoulder rotation) benefits from multiple
   synced camera views. This is intentionally a single-camera tool.
@@ -178,15 +159,3 @@ gap is not fully closed here; see Limitations below.
   have motion blur; the UI surfaces the pose-detection rate so users know when
   to trust the results less.
 
-## Possible extensions
-
-- **Validate against ground truth**: compare this pipeline's joint angles to
-  a marker-based or multi-camera reference system, on even a small sample,
-  and report actual error bounds the way the studies in docs/REFERENCES.md
-  do — the single highest-value next step for research use.
-- Compare a rep/swing against the athlete's own historical baseline to track
-  progress over time
-- Add more movements (deadlift, vertical jump, throwing motion)
-- Fit thresholds to labeled outcome data (injury history, coach ratings)
-  instead of literature-motivated defaults
-- Multi-camera triangulation for genuinely accurate 3D
