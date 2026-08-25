@@ -1,4 +1,4 @@
-**Literature grounding**
+## **Literature grounding**
 
 This project's rule-based thresholds are motivated by findings in the sports-
 biomechanics literature. This document lists what each
