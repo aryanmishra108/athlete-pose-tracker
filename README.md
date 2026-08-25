@@ -2,8 +2,7 @@
 
 A computer vision tool that analyzes athletic movement from a single uploaded video.
 It tracks 2D and 3D body pose, computes sport-specific biomechanical metrics, and
-flags common form issues using coaching heuristics — for squats, sprinting, and
-golf swings.
+flags common form issues using coaching heuristics for squats, sprinting, cricket batting and bowling, football and golf swings.
 
 ## Demo
 
