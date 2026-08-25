@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+venv/
+.venv/
+*.egg-info/
+
+# Local model cache (downloaded at runtime, not part of the repo)
+*.task
+
+# OS / editor cruft
+.DS_Store
+.vscode/
+.idea/
+
+# Streamlit
+.streamlit/secrets.toml
