@@ -1,7 +1,13 @@
 libgl1
 libgles2
+libegl1
+libgl1-mesa-dri
 libglib2.0-0t64
 libsm6
 libxext6
 libxrender1
 libgomp1
+libx11-6
+libxcb1
+libxau6
+libxdmcp6
